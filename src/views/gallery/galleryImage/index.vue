@@ -92,10 +92,17 @@
       <el-table-column label="图片编号" align="center" prop="fileId" />
       <el-table-column label="用户编号" align="center" prop="userId" />
       <el-table-column label="上传用户" align="center" prop="userName" />
-      <el-table-column label="用户头像" align="center" prop="userAvatar" />
       <el-table-column label="名称" align="center" prop="fileName" />
       <el-table-column label="分类" align="center" prop="fileType" />
-      <el-table-column label="来源" align="center" prop="fileOrigin" />
+      <el-table-column label="来源" align="center" prop="fileOrigin">
+        <template #default="{ row }">
+          <div class="ellipsis-container">
+          <el-tooltip class="item" effect="dark" placement="bottom" :content="row.fileOrigin">
+            <span class="ellipsis-text">{{ row.fileOrigin }}</span>
+          </el-tooltip>
+        </div>
+        </template>
+      </el-table-column>
       <el-table-column label="点赞数" align="center" prop="fileLikeCount" />
       <el-table-column label="收藏数" align="center" prop="fileCollectCount" />
       <el-table-column label="下载次数" align="center" prop="fileDownCount" />
@@ -434,3 +441,20 @@ function handleExport() {
 
 getList();
 </script>
+
+<style scoped>
+.ellipsis-container {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ellipsis-text {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+</style>
