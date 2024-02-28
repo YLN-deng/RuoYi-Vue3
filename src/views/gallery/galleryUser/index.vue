@@ -147,7 +147,7 @@
         <el-form-item v-if="title=='修改用户管理'" label="用户性别" prop="userSex">
           <el-select v-model="form.userSex" placeholder="请选择用户性别">
             <el-option label="男" :value="1"></el-option>
-            <el-option label="女" :disabled="0"></el-option>
+            <el-option label="女" :value="0"></el-option>
             <el-option label="未知" :value="2"></el-option>
           </el-select>
         </el-form-item>

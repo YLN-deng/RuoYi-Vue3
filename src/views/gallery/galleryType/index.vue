@@ -71,8 +71,8 @@
 
     <el-table v-loading="loading" :data="galleryTypeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="id" align="center" prop="typeId" />
-      <el-table-column label="文件分类" align="center" prop="fileType" />
+      <el-table-column label="编号" align="center" prop="typeId" />
+      <el-table-column label="图片分类" align="center" prop="fileType" />
       <el-table-column label="创建时间" align="center" prop="createDate">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createDate, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
