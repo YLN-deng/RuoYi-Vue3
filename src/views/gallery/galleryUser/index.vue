@@ -248,7 +248,7 @@ function formatUserSex(row, column, cellValue) {
     case 2:
       return '未知';
     default:
-      return '未知';
+      return '异常';
     }
 }
 
