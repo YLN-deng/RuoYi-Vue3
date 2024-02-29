@@ -108,7 +108,7 @@
       <el-table-column label="下载次数" align="center" prop="fileDownCount" />
       <el-table-column label="上传日期" align="center" prop="fileDate" width="180">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.fileDate, '{y}-{m}-{d} {h}:{m}:{s}') }}</span>
+          <span>{{ parseTime(scope.row.fileDate, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="审核状态" align="center" prop="fileReview">

@@ -1,6 +1,22 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="用户编号" prop="userId">
+        <el-input
+          v-model="queryParams.userId"
+          placeholder="请输入用户编号"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="图片编号" prop="fileId">
+        <el-input
+          v-model="queryParams.fileId"
+          placeholder="请输入图片编号"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="创建时间" style="width: 308px">
         <el-date-picker
           v-model="daterangeCreateDate"
@@ -34,7 +50,7 @@
           plain
           icon="Plus"
           @click="handleAdd"
-          v-hasPermi="['gallery:galleryType:add']"
+          v-hasPermi="['gallery:galleryCollectLike:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -44,7 +60,7 @@
           icon="Edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['gallery:galleryType:edit']"
+          v-hasPermi="['gallery:galleryCollectLike:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -54,7 +70,7 @@
           icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['gallery:galleryType:remove']"
+          v-hasPermi="['gallery:galleryCollectLike:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -63,30 +79,44 @@
           plain
           icon="Download"
           @click="handleExport"
-          v-hasPermi="['gallery:galleryType:export']"
+          v-hasPermi="['gallery:galleryCollectLike:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="galleryTypeList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="galleryCollectLikeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="编号" align="center" prop="typeId" />
-      <el-table-column label="图片分类" align="center" prop="fileType" />
-      <el-table-column label="创建时间" align="center" prop="createDate">
+      <el-table-column label="用户编号" align="center" prop="userId" />
+      <el-table-column label="图片编号" align="center" prop="fileId" />
+      <el-table-column label="是否收藏" align="center" prop="isCollected">
+        <template #default="{ row }">
+          <el-tag :type="row.isCollected === 1 ? 'success' : 'danger'">
+            {{ row.isCollected === 1 ? '是' : '否' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="是否点赞" align="center" prop="isLiked">
+        <template #default="{ row }">
+          <el-tag :type="row.isLiked === 1 ? 'success' : 'danger'">
+            {{ row.isLiked === 1 ? '是' : '否' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" align="center" prop="createDate" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createDate, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="修改时间" align="center" prop="updateDate">
+      <el-table-column label="修改时间" align="center" prop="updateDate" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateDate, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['gallery:galleryType:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['gallery:galleryType:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['gallery:galleryCollectLike:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['gallery:galleryCollectLike:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -99,13 +129,28 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改分类管理对话框 -->
+    <!-- 添加或修改收藏管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="galleryTypeRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="文件分类" prop="fileType">
-          <el-input v-model="form.fileType" placeholder="请输入文件分类" />
+      <el-form ref="galleryCollectLikeRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="用户编号" prop="userId">
+          <el-input v-model="form.userId" placeholder="请输入用户编号" />
         </el-form-item>
-        <el-form-item  v-if="title=='添加分类管理'" label="创建时间" prop="createDate">
+        <el-form-item label="图片编号" prop="fileId">
+          <el-input v-model="form.fileId" placeholder="请输入图片编号" />
+        </el-form-item>
+        <el-form-item label="是否收藏" prop="isCollected">
+          <el-radio-group v-model="form.isCollected">
+            <el-radio :label="0">未收藏</el-radio>
+            <el-radio :label="1">已收藏</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="是否点赞" prop="isLiked">
+          <el-radio-group v-model="form.isLiked">
+            <el-radio :label="0">未点赞</el-radio>
+            <el-radio :label="1">已点赞</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="创建时间" prop="createDate">
           <el-date-picker clearable
             v-model="form.createDate"
             type="datetime"
@@ -113,7 +158,7 @@
             placeholder="请选择创建时间">
           </el-date-picker>
         </el-form-item>
-        <el-form-item v-if="title=='修改分类管理'" label="修改时间" prop="updateDate">
+        <el-form-item v-if="title=='修改收藏管理'" label="修改时间" prop="updateDate">
           <el-date-picker clearable
             v-model="form.updateDate"
             type="datetime"
@@ -132,12 +177,12 @@
   </div>
 </template>
 
-<script setup name="GalleryType">
-import { listGalleryType, getGalleryType, delGalleryType, addGalleryType, updateGalleryType } from "@/api/gallery/galleryType";
+<script setup name="GalleryCollectLike">
+import { listGalleryCollectLike, getGalleryCollectLike, delGalleryCollectLike, addGalleryCollectLike, updateGalleryCollectLike } from "@/api/gallery/galleryCollectLike";
 
 const { proxy } = getCurrentInstance();
 
-const galleryTypeList = ref([]);
+const galleryCollectLikeList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -154,12 +199,17 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    userId: null,
+    fileId: null,
     createDate: null,
     updateDate: null
   },
   rules: {
-    fileType: [
-      { required: true, message: "文件分类不能为空", trigger: "blur" }
+    userId: [
+      { required: true, message: "用户id不能为空", trigger: "blur" }
+    ],
+    fileId: [
+      { required: true, message: "图片id不能为空", trigger: "blur" }
     ],
     createDate: [
       { required: true, message: "创建时间不能为空", trigger: "blur" }
@@ -169,7 +219,7 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询分类管理列表 */
+/** 查询收藏管理列表 */
 function getList() {
   loading.value = true;
   queryParams.value.params = {};
@@ -181,8 +231,8 @@ function getList() {
     queryParams.value.params["beginUpdateDate"] = daterangeUpdateDate.value[0];
     queryParams.value.params["endUpdateDate"] = daterangeUpdateDate.value[1];
   }
-  listGalleryType(queryParams.value).then(response => {
-    galleryTypeList.value = response.rows;
+  listGalleryCollectLike(queryParams.value).then(response => {
+    galleryCollectLikeList.value = response.rows;
     total.value = response.total;
     loading.value = false;
   });
@@ -197,12 +247,15 @@ function cancel() {
 // 表单重置
 function reset() {
   form.value = {
-    typeId: null,
-    fileType: null,
+    id: null,
+    userId: null,
+    fileId: null,
+    isCollected: null,
+    isLiked: null,
     createDate: null,
     updateDate: null
   };
-  proxy.resetForm("galleryTypeRef");
+  proxy.resetForm("galleryCollectLikeRef");
 }
 
 /** 搜索按钮操作 */
@@ -221,7 +274,7 @@ function resetQuery() {
 
 // 多选框选中数据
 function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.typeId);
+  ids.value = selection.map(item => item.id);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -230,32 +283,32 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加分类管理";
+  title.value = "添加收藏管理";
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
-  const _typeId = row.typeId || ids.value
-  getGalleryType(_typeId).then(response => {
+  const _id = row.id || ids.value
+  getGalleryCollectLike(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改分类管理";
+    title.value = "修改收藏管理";
   });
 }
 
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["galleryTypeRef"].validate(valid => {
+  proxy.$refs["galleryCollectLikeRef"].validate(valid => {
     if (valid) {
-      if (form.value.typeId != null) {
-        updateGalleryType(form.value).then(response => {
+      if (form.value.id != null) {
+        updateGalleryCollectLike(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addGalleryType(form.value).then(response => {
+        addGalleryCollectLike(form.value).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -267,9 +320,9 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _typeIds = row.typeId || ids.value;
-  proxy.$modal.confirm('是否确认删除分类管理编号为"' + _typeIds + '"的数据项？').then(function() {
-    return delGalleryType(_typeIds);
+  const _ids = row.id || ids.value;
+  proxy.$modal.confirm('是否确认删除收藏管理编号为"' + _ids + '"的数据项？').then(function() {
+    return delGalleryCollectLike(_ids);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
@@ -278,9 +331,9 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('gallery/galleryType/export', {
+  proxy.download('gallery/galleryCollectLike/export', {
     ...queryParams.value
-  }, `galleryType_${new Date().getTime()}.xlsx`)
+  }, `galleryCollectLike_${new Date().getTime()}.xlsx`)
 }
 
 getList();

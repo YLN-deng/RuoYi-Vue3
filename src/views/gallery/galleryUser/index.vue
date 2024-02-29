@@ -91,7 +91,7 @@
       <el-table-column label="用户收藏数量" align="center" prop="userCollect" />
       <el-table-column label="账号创建时间" align="center" prop="createDate" width="180">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.createDate, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.createDate, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="账号状态" align="center" prop="userStatus">
