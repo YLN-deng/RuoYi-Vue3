@@ -28,16 +28,10 @@
         ></el-date-picker>
       </el-form-item>
       <el-form-item label="图片审核" prop="fileReview">
-        <el-switch
-          v-model="queryParams.fileReview"
-          active-value="0"
-          inactive-value="1"
-          active-text="已通过"
-          inactive-text="未通过"
-          active-color="#13ce66"
-          inactive-color="#ff4949"
-          @change="handleQuery"
-        />
+        <el-select v-model="queryParams.fileReview" placeholder="请选择是否通过审核" @change="handleQuery">
+          <el-option :label="'已审核'" :value="1"></el-option>
+          <el-option :label="'未审核'" :value="0"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -113,8 +107,8 @@
       </el-table-column>
       <el-table-column label="审核状态" align="center" prop="fileReview">
         <template #default="{ row }">
-          <el-tag :type="row.fileReview === 0 ? 'success' : 'danger'">
-            {{ row.fileReview === 0 ? '已通过' : '未通过' }}
+          <el-tag :type="row.fileReview === 1 ? 'success' : 'danger'">
+            {{ row.fileReview === 1 ? '已通过' : '未通过' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -162,8 +156,8 @@
             <div>
               <el-form-item label="审核状态" prop="fileReview">
                 <el-radio-group v-model="form.fileReview">
-                  <el-radio :label="0">已通过</el-radio>
-                  <el-radio :label="1">未通过</el-radio>
+                  <el-radio :label="1">已通过</el-radio>
+                  <el-radio :label="0">未通过</el-radio>
                 </el-radio-group>
               </el-form-item>
               <el-form-item label="图片状态" prop="fileStatus">
