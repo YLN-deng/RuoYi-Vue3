@@ -121,7 +121,22 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="galleryUserRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户头像" prop="userAvatar">
-          <el-image :src="imgHost + form.userAvatar" style="width: 100px; height: 100px;" fit="cover"></el-image>
+          <!-- <el-image :src="imgHost + form.userAvatar" style="width: 100px; height: 100px;" fit="cover"></el-image> -->
+          <el-upload
+            class="avatar-uploader"
+            :headers="headers"
+            :action="action"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
+          >
+            <img
+              v-if="form.userAvatar"
+              :src="imgHost + form.userAvatar"
+              class="avatar"
+            />
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          </el-upload>
         </el-form-item>
         <el-form-item label="微信编号" prop="userUnionid">
           <el-input v-model="form.userUnionid" placeholder="请输入微信编号" />
@@ -195,6 +210,7 @@
 
 <script setup name="GalleryUser">
 import { listGalleryUser, getGalleryUser, delGalleryUser, addGalleryUser, updateGalleryUser } from "@/api/gallery/galleryUser";
+import { getToken } from '@/utils/auth'
 
 const { proxy } = getCurrentInstance();
 
@@ -209,7 +225,11 @@ const total = ref(0);
 const title = ref("");
 const daterangeCreateDate = ref([]);
 const daterangeUpdateDate = ref([]);
-const imgHost = import.meta.env.VITE_APP_BASE_IMG
+const imgHost = import.meta.env.VITE_APP_BASE_IMG;
+const action = import.meta.env.VITE_APP_BASE_HOST + "/gallery/galleryUser/uploadAvatar";
+const headers = {
+  'Authorization': 'Bearer ' + getToken()
+}
 
 const data = reactive({
   form: {},
@@ -286,7 +306,7 @@ function reset() {
     userName: null,
     userAccount: null,
     userPassword: null,
-    userAvatar: '/头像/default.png',
+    userAvatar: null,
     userEmail: null,
     userQq: null,
     userSex: null,
@@ -324,6 +344,7 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
+  form.value.userAvatar = '/头像/default.png',
   open.value = true;
   title.value = "添加用户管理";
 }
@@ -333,7 +354,6 @@ function handleUpdate(row) {
   reset();
   const _userId = row.userId || ids.value
   getGalleryUser(_userId).then(response => {
-    console.log('response :>> ', response);
     form.value = response.data;
     open.value = true;
     title.value = "修改用户管理";
@@ -379,5 +399,62 @@ function handleExport() {
   }, `galleryUser_${new Date().getTime()}.xlsx`)
 }
 
+/**
+ * 
+ * @param {*} rawFile 
+ * 上传头像图片限制
+ */
+const beforeAvatarUpload = (rawFile) => {
+  // 上传限制
+  if (rawFile.type !== "image/jpeg") {
+    ElMessage.error("头像图片必须是 JPG/PNG/GIF 格式！");
+    return false;
+  } else if (rawFile.size / 1024 / 1024 > 2) {
+    ElMessage.error("头像图片大小不能超过2MB！");
+    return false;
+  }
+  return true
+};
+
+/**
+ * 上传成功回显
+ * @param {*} res 
+ */
+const handleAvatarSuccess = (res) => {
+  // 修改图片地址
+  form.value.userAvatar = res.data.userAvatar;
+}
+
 getList();
 </script>
+
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  text-align: center;
+}
+</style>
+
+<style scoped lang="scss">
+.avatar-uploader .avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>
