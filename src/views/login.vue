@@ -59,7 +59,7 @@
     </el-form>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2024-2024 ogcfun.top All Rights Reserved. 备案号：<a href="https://beian.miit.gov.cn">桂ICP备2023013705号</a></span>
+      <span>Copyright © 2024-2024 ogcfun.top All Rights Reserved - <a href="https://beian.miit.gov.cn">桂ICP备2023013705号</a></span>
     </div>
   </div>
 </template>

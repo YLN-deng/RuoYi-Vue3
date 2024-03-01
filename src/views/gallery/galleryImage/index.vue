@@ -91,10 +91,10 @@
       <el-table-column label="来源" align="center" prop="fileOrigin">
         <template #default="{ row }">
           <div class="ellipsis-container">
-          <el-tooltip class="item" effect="dark" placement="bottom" :content="row.fileOrigin">
-            <span class="ellipsis-text">{{ row.fileOrigin }}</span>
-          </el-tooltip>
-        </div>
+            <el-tooltip class="item" effect="dark" placement="bottom" :content="row.fileOrigin">
+              <span class="ellipsis-text">{{ row.fileOrigin }}</span>
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="点赞数" align="center" prop="fileLikeCount" />
@@ -147,11 +147,12 @@
       <el-form v-if="title=='修改列表管理'" ref="galleryImageRef" :model="form" :rules="rules" label-width="80px">
         <div style="display: flex;">
           <div style="width: 400px;display: flex;flex-direction: column;justify-content: space-between">
-            <el-image
+            <!-- <el-image
               :src="imgHost + form.filePath"
               fit="cover"
               style="width: 300px;"
-            />
+            /> -->
+            <image-preview :src="imgHost + form.filePath" :width="300"/>
 
             <div>
               <el-form-item label="审核状态" prop="fileReview">
@@ -197,7 +198,7 @@
               <el-input v-model="form.filePath" placeholder="请输入图片地址" />
             </el-form-item>
             <el-form-item label="图片来源" prop="fileOrigin">
-              <el-input v-model="form.fileOrigin" placeholder="请输入图片来源" />
+              <el-input v-model="form.fileOrigin" type="textarea" placeholder="请输入图片来源" />
             </el-form-item>
             <el-form-item label="图片宽度" prop="fileWidth">
               <el-input v-model="form.fileWidth" placeholder="请输入图片宽度" />
@@ -251,7 +252,7 @@
           <el-input v-model="form.filePath" placeholder="请输入图片地址" />
         </el-form-item>
         <el-form-item label="图片来源" prop="fileOrigin">
-          <el-input v-model="form.fileOrigin" placeholder="请输入图片来源" />
+          <el-input v-model="form.fileOrigin" type="textarea" placeholder="请输入图片来源" />
         </el-form-item>
         <el-form-item label="上传日期" prop="fileDate">
           <el-date-picker clearable

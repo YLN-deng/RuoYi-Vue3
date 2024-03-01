@@ -83,7 +83,7 @@
       <el-table-column label="用户账号" align="center" prop="userAccount" />
       <el-table-column label="用户头像" align="center" prop="userAvatar">
         <template #default="scope">
-          <el-image :src="imgHost + scope.row.userAvatar" style="width: 40px; height: 40px;"></el-image>
+          <image-preview :src="imgHost + scope.row.userAvatar" :width="40" :height="40"/>
         </template>
       </el-table-column>
       <el-table-column label="用户qq" align="center" prop="userQq" />
