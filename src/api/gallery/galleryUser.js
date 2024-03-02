@@ -42,3 +42,11 @@ export function delGalleryUser(userId) {
     method: 'delete'
   })
 }
+
+// 获取用户名称，头像信息
+export function getGalleryUserInfo(userId) {
+  return request({
+    url: '/gallery/galleryUser/userInfo/' + userId,
+    method: 'get'
+  })
+}

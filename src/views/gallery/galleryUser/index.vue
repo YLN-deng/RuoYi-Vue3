@@ -123,18 +123,21 @@
         <el-form-item label="用户头像" prop="userAvatar">
           <!-- <el-image :src="imgHost + form.userAvatar" style="width: 100px; height: 100px;" fit="cover"></el-image> -->
           <el-upload
+            v-loading="loadingAvatar"
+            element-loading-text="上传中..."
             class="avatar-uploader"
             :headers="headers"
             :action="action"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
+            :on-error="handleAvatarError"
             :before-upload="beforeAvatarUpload"
           >
             <img
               v-if="form.userAvatar"
               :src="imgHost + form.userAvatar"
               class="avatar"
-            />
+            /> 
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
@@ -230,6 +233,7 @@ const action = import.meta.env.VITE_APP_BASE_HOST + "/gallery/galleryUser/upload
 const headers = {
   'Authorization': 'Bearer ' + getToken()
 }
+const loadingAvatar = ref(false)
 
 const data = reactive({
   form: {},
@@ -407,12 +411,14 @@ function handleExport() {
 const beforeAvatarUpload = (rawFile) => {
   // 上传限制
   if (rawFile.type !== "image/jpeg") {
-    ElMessage.error("头像图片必须是 JPG/PNG/GIF 格式！");
+    proxy.$modal.msgError("头像图片必须是 JPG/PNG/GIF 格式！");
     return false;
   } else if (rawFile.size / 1024 / 1024 > 2) {
-    ElMessage.error("头像图片大小不能超过2MB！");
+    proxy.$modal.msgError("头像图片大小不能超过2MB！");
     return false;
   }
+  // 开启上传动画
+  loadingAvatar.value = true;
   return true
 };
 
@@ -422,7 +428,19 @@ const beforeAvatarUpload = (rawFile) => {
  */
 const handleAvatarSuccess = (res) => {
   // 修改图片地址
-  form.value.userAvatar = res.data.userAvatar;
+  form.value.userAvatar = res.data;
+  // 上传动画结束
+  loadingAvatar.value = false;
+}
+
+/**
+ * 上传失败处理
+ * @param {*} err 
+ */
+const handleAvatarError = (err) => {
+  // 上传动画结束
+  loadingAvatar.value = false;
+  proxy.$modal.msgError("上传失败");
 }
 
 getList();
@@ -448,6 +466,10 @@ getList();
   width: 178px;
   height: 178px;
   text-align: center;
+}
+
+.avatar-uploader .example-showcase .el-loading-mask {
+  z-index: 9;
 }
 </style>
 

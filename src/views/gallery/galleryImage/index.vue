@@ -10,12 +10,9 @@
         />
       </el-form-item>
       <el-form-item label="图片分类" prop="fileType">
-        <el-input
-          v-model="queryParams.fileType"
-          placeholder="请输入图片分类"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-select v-model="queryParams.fileType" placeholder="请选择图片分类" @change="handleQuery">
+          <el-option v-for="(item,index) in galleryTypeData" :label="item" :value="item"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="上传日期" style="width: 308px">
         <el-date-picker
@@ -152,7 +149,9 @@
               fit="cover"
               style="width: 300px;"
             /> -->
-            <image-preview :src="imgHost + form.filePath" :width="300"/>
+            <div v-loading="loadingImage" element-loading-text="载入中..." style="width:300px">
+              <image-preview :src="imgHost + form.filePath" :width="300"/>
+            </div>
 
             <div>
               <el-form-item label="审核状态" prop="fileReview">
@@ -167,17 +166,11 @@
                   <el-radio :label="1">隐藏</el-radio>
                 </el-radio-group>
               </el-form-item>
-              <el-form-item label="是否删除" prop="fileDelete">
-                <el-radio-group v-model="form.fileDelete">
-                  <el-radio :label="0">否</el-radio>
-                  <el-radio :label="1">是</el-radio>
-                </el-radio-group>
-              </el-form-item>
             </div>
           </div>
           <div style="width: 400px;">
             <el-form-item label="用户编号" prop="userId">
-              <el-input v-model="form.userId" placeholder="请输入用户id" />
+              <el-input v-model="form.userId" placeholder="请输入用户编号" @change="handleInput(form.userId)"/>
             </el-form-item>
             <el-form-item label="上传用户" prop="userName">
               <el-input v-model="form.userName" placeholder="请输入上传用户" />
@@ -189,7 +182,9 @@
               <el-input v-model="form.fileName" placeholder="请输入图片名称" />
             </el-form-item>
             <el-form-item label="图片分类" prop="fileType">
-              <el-input v-model="form.fileType" placeholder="请输入图片分类" />
+              <el-select v-model="form.fileType" placeholder="请选择图片分类" style="width:100%" @change="handleSelect(form.fileType)">
+                <el-option v-for="(item,index) in galleryTypeData" :label="item" :value="item"></el-option>
+              </el-select>
             </el-form-item>
             <el-form-item label="图片后缀" prop="fileSuffix">
               <el-input v-model="form.fileSuffix" placeholder="请输入图片后缀" />
@@ -226,6 +221,12 @@
                 placeholder="请选择图片上传日期">
               </el-date-picker>
             </el-form-item>
+            <el-form-item label="是否删除" prop="fileDelete">
+                <el-radio-group v-model="form.fileDelete">
+                  <el-radio :label="0">否</el-radio>
+                  <el-radio :label="1">是</el-radio>
+                </el-radio-group>
+              </el-form-item>
           </div>
         </div>
         
@@ -233,38 +234,89 @@
 
       <!-- 新增 -->
       <el-form v-else ref="galleryImageRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="用户编号" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户id" />
-        </el-form-item>
-        <el-form-item label="上传用户" prop="userName">
-          <el-input v-model="form.userName" placeholder="请输入上传用户" />
-        </el-form-item>
-        <el-form-item label="用户头像" prop="userAvatar">
-          <el-input v-model="form.userAvatar" placeholder="请输入上传者头像" />
-        </el-form-item>
-        <el-form-item label="图片名称" prop="fileName">
-          <el-input v-model="form.fileName" placeholder="请输入图片名称" />
-        </el-form-item>
-        <el-form-item label="图片分类" prop="fileType">
-          <el-input v-model="form.fileType" placeholder="请输入图片分类" />
-        </el-form-item>
-        <el-form-item label="图片地址" prop="filePath">
-          <el-input v-model="form.filePath" placeholder="请输入图片地址" />
-        </el-form-item>
-        <el-form-item label="图片来源" prop="fileOrigin">
-          <el-input v-model="form.fileOrigin" type="textarea" placeholder="请输入图片来源" />
-        </el-form-item>
-        <el-form-item label="上传日期" prop="fileDate">
-          <el-date-picker clearable
-            v-model="form.fileDate"
-            type="datetime"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            placeholder="请选择图片上传日期">
-          </el-date-picker>
-        </el-form-item>
+        <div style="display: flex;">
+          <div style="width: 400px">
+            <el-upload
+              class="avatar-uploader"
+              :headers="headers"
+              :action="action"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :on-error="handleAvatarError"
+              :before-upload="beforeAvatarUpload"
+              :data="{fileType:uploadData}"
+            >
+             <div v-loading="loadingImage" element-loading-text="载入中..." v-if="imageUrl">
+                <el-image
+                  :src="imageUrl"
+                  class="avatar"
+                ></el-image> 
+             </div>
+              <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+            </el-upload>
+          </div>
+          <div style="width: 400px;">
+            <el-form-item label="用户编号" prop="userId">
+              <el-input v-model="form.userId" placeholder="请输入用户编号" @change="handleInput(form.userId)"/>
+            </el-form-item>
+            <el-form-item label="上传用户" prop="userName">
+              <el-input v-model="form.userName" placeholder="请输入上传用户" />
+            </el-form-item>
+            <el-form-item label="用户头像" prop="userAvatar">
+              <el-input v-model="form.userAvatar" placeholder="请输入上传者头像" />
+            </el-form-item>
+            <el-form-item label="图片分类" prop="fileType">
+              <el-select v-model="form.fileType" placeholder="请选择图片分类" style="width:100%" @change="handleSelect(form.fileType)">
+                <el-option v-for="(item,index) in galleryTypeData" :label="item" :value="item"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="图片名称" prop="fileName">
+              <el-input v-model="form.fileName" placeholder="请输入图片名称" />
+            </el-form-item>
+            <el-form-item label="图片地址" prop="filePath">
+              <el-input v-model="form.filePath" placeholder="请输入图片地址" />
+            </el-form-item>
+            <el-form-item label="图片来源" prop="fileOrigin">
+              <el-input v-model="form.fileOrigin" type="textarea" placeholder="请输入图片来源" />
+            </el-form-item>
+            <el-form-item label="图片后缀" prop="fileSuffix">
+              <el-input v-model="form.fileSuffix" placeholder="请输入图片后缀" />
+            </el-form-item>
+            <el-form-item label="图片宽度" prop="fileWidth">
+              <el-input v-model="form.fileWidth" placeholder="请输入图片宽度" />
+            </el-form-item>
+            <el-form-item label="图片高度" prop="fileHeight"> 
+              <el-input v-model="form.fileHeight" placeholder="请输入图片高度" />
+            </el-form-item>
+            <el-form-item label="图片大小" prop="fileSize">
+              <el-input v-model="form.fileSize" placeholder="请输入图片大小" />
+            </el-form-item>
+            <el-form-item label="上传日期" prop="fileDate">
+              <el-date-picker clearable
+                v-model="form.fileDate"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                placeholder="请选择图片上传日期">
+              </el-date-picker>
+            </el-form-item>
+          </div>
+        </div>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
+          <el-upload
+            v-if="title=='修改列表管理'"
+            class="upload-demo"
+            :headers="headers"
+            :action="action"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :on-error="handleAvatarError"
+            :before-upload="beforeAvatarUpload"
+            :data="{fileType:uploadData}"
+          >
+            <el-button style="margin-right: 12px;" type="warning">修改图片</el-button>
+          </el-upload>
           <el-button type="primary" @click="submitForm">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
@@ -275,6 +327,9 @@
 
 <script setup name="GalleryImage">
 import { listGalleryImage, getGalleryImage, delGalleryImage, addGalleryImage, updateGalleryImage } from "@/api/gallery/galleryImage";
+import {getGalleryUserInfo} from "@/api/gallery/galleryUser";
+import { listGalleryType} from "@/api/gallery/galleryType";
+import { getToken } from '@/utils/auth'
 
 const { proxy } = getCurrentInstance();
 
@@ -290,6 +345,15 @@ const total = ref(0);
 const title = ref("");
 const daterangeFileDate = ref([]);
 const imgHost = import.meta.env.VITE_APP_BASE_IMG
+const action = import.meta.env.VITE_APP_BASE_HOST + "/gallery/galleryImage/uploadImage";
+const headers = {
+  'Authorization': 'Bearer ' + getToken()
+}
+const loadingImage = ref(false)
+const imageUrl = ref(null);
+
+  // 图片上传参数
+const uploadData = ref("")
 
 const data = reactive({
   form: {},
@@ -302,10 +366,31 @@ const data = reactive({
     fileReview: null,
   },
   rules: {
-  }
+    userId: [
+      { required: true, message: "用户编号不能为空", trigger: "blur" }
+    ],
+    fileType: [
+      { required: true, message: "图片分类不能为空", trigger: "blur" }
+    ],
+    fileOrigin: [
+      { required: true, message: "图片来源不能为空", trigger: "blur" }
+    ],
+    fileDate: [
+      { required: true, message: "图片上传时间不能为空", trigger: "blur" }
+    ],
+  },
+  // 查询listGalleryType的参数
+  queryTypeParams: {
+    pageNum: 1,
+    pageSize: 10,
+    createDate: null,
+    updateDate: null
+  },
+  // 保存GalleryType参数
+  galleryTypeData : [],
 });
 
-const { queryParams, form, rules } = toRefs(data);
+const { queryParams, form, rules, galleryTypeData, queryTypeParams } = toRefs(data);
 
 /** 查询列表管理列表 */
 function getList() {
@@ -378,7 +463,8 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
-  dialogWidth.value = "500px"
+  dialogWidth.value = "800px"
+  imageUrl.value = null
   open.value = true;
   title.value = "添加列表管理";
 }
@@ -392,8 +478,10 @@ function handleUpdate(row) {
     dialogWidth.value = "800px"
     open.value = true;
     title.value = "修改列表管理";
+    uploadData.value = response.data.fileType;
   });
 }
+
 
 /** 提交按钮 */
 function submitForm() {
@@ -434,8 +522,124 @@ function handleExport() {
   }, `galleryImage_${new Date().getTime()}.xlsx`)
 }
 
+/**
+ * 
+ * @param {*} rawFile 
+ * 上传头像图片限制
+ */
+ const beforeAvatarUpload = (rawFile) => {
+  // 上传限制
+  if(form.value.userId == null || form.value.userId == "") {
+    proxy.$modal.msgError("请输入用户编号！");
+    return false;
+  }else if(form.value.fileType == null || form.value.userId == "") {
+    proxy.$modal.msgError("请输入图片分类！");
+    return false;
+  }else if (rawFile.type !== "image/jpeg") {
+    proxy.$modal.msgError("图片必须是 JPG/PNG/GIF 格式！");
+    return false;
+  } else if (rawFile.size / 1024 / 1024 > 10) {
+    proxy.$modal.msgError("图片大小不能超过10MB！");
+    return false;
+  }
+  // 显示上传图片
+  imageUrl.value = URL.createObjectURL(rawFile);
+
+  // 开启上传动画
+  loadingImage.value = true;
+  return true
+};
+
+/**
+ * 上传成功回显
+ * @param {*} res 
+ */
+const handleAvatarSuccess = (res) => {
+  const { width, height, suffix, fileSize, fileName, filePath } = res.data;
+  // 回显表单图片宽度
+  form.value.fileWidth = width;
+  // 回显表单图片高度
+  form.value.fileHeight = height;
+  // 回显表单图片后缀
+  form.value.fileSuffix = suffix;
+  // 回显表单图片大小
+  form.value.fileSize = fileSize;
+  // 回显表单图片名字
+  form.value.fileName = fileName;
+  // 回显表单图片地址
+  form.value.filePath = filePath;
+  // 上传动画结束
+  loadingImage.value = false;
+}
+
+/**
+ * 上传失败处理
+ * @param {*} err 
+ */
+const handleAvatarError = (err) => {
+  // 上传动画结束
+  loadingImage.value = false;
+  proxy.$modal.msgError("上传失败");
+}
+
+/**
+ * 输入时回显用户数据
+ * @param {*} userId 
+ */
+function handleInput(userId) {
+  getGalleryUserInfo(userId).then((res) => {
+    const { userName, userAvatar } = res.data
+    form.value.userName = userName;
+    form.value.userAvatar = userAvatar;
+  })
+}
+
+/**
+ * 选择图片分类时，保存信息上传
+ * @param {*} fileType 
+ */
+function handleSelect(fileType) {
+  uploadData.value = fileType;
+}
+
+// 查询GalleryType表
+async function getlistGalleryType() {
+  await listGalleryType(queryTypeParams.value).then(response => {
+    // 遍历 response.rows，并将每个 item.fileType 添加到 galleryTypeData 数组中
+    galleryTypeData.value = response.rows.map(item => item.fileType);
+  });
+}
+
 getList();
+getlistGalleryType();
 </script>
+
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+
+.el-icon.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 300px;
+  height: 300px;
+  text-align: center;
+}
+
+.example-showcase .el-loading-mask {
+  z-index: 9;
+}
+</style>
 
 <style scoped>
 .ellipsis-container {
@@ -452,4 +656,17 @@ getList();
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.avatar-uploader .avatar {
+  width: 300px;
+  display: block;
+}
+
+.dialog-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 </style>

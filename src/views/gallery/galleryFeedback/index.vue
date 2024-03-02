@@ -99,7 +99,8 @@
       <el-table-column label="反馈图片" align="center" prop="fbImage">
         <template #default="{ row }">
           <!-- 自定义插槽 -->
-          <span @click="onPreviewImage(row.fbImage)" class="look-fbImage">查看</span>
+          <span v-if="row.fbImage" @click="onPreviewImage(row.fbImage)" class="look-fbImage">查看</span>
+          <span v-else class="no-fbImage">无</span>
         </template>
       </el-table-column>
       <el-table-column label="反馈时间" align="center" prop="fbDate" width="180">
@@ -107,7 +108,13 @@
           <span>{{ parseTime(scope.row.fbDate, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="反馈进度" align="center" prop="fbSchedule" />
+      <el-table-column label="反馈进度" align="center" prop="fbSchedule" >
+        <template #default="{ row }">
+          <el-tag :type="row.fbSchedule === 0 ? 'danger' : (row.fbSchedule === 1 ? 'primary' : 'success')">
+            {{ row.fbSchedule === 0 ? '未解决' : (row.fbSchedule === 1 ? '处理中' : '已解决') }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['gallery:galleryFeedback:edit']">修改</el-button>
@@ -373,5 +380,10 @@ getList();
   color:#409EFC;
   font-size: 16px; /* 可以根据需要调整图标大小 */
   cursor: pointer; /* 鼠标样式 */
+}
+
+.no-fbImage {
+  color:#000000;
+  font-size: 16px; /* 可以根据需要调整图标大小 */
 }
 </style>
