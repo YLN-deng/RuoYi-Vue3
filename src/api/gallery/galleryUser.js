@@ -50,3 +50,12 @@ export function getGalleryUserInfo(userId) {
     method: 'get'
   })
 }
+
+// 修改图库用户头像信息
+export function uploadAvatar(file) {
+  return request({
+    url: '/gallery/galleryUser/uploadAvatar',
+    method: 'post',
+    data:file
+  })
+}

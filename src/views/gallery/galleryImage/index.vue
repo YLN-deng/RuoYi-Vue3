@@ -144,11 +144,6 @@
       <el-form v-if="title=='修改列表管理'" ref="galleryImageRef" :model="form" :rules="rules" label-width="80px">
         <div style="display: flex;">
           <div style="width: 400px;display: flex;flex-direction: column;justify-content: space-between">
-            <!-- <el-image
-              :src="imgHost + form.filePath"
-              fit="cover"
-              style="width: 300px;"
-            /> -->
             <div v-loading="loadingImage" element-loading-text="载入中..." style="width:300px">
               <image-preview :src="imgHost + form.filePath" :width="300"/>
             </div>
@@ -239,12 +234,10 @@
             <el-upload
               class="avatar-uploader"
               :headers="headers"
-              :action="action"
+              action="#"
+              :http-request="httpRequest"
               :show-file-list="false"
-              :on-success="handleAvatarSuccess"
-              :on-error="handleAvatarError"
               :before-upload="beforeAvatarUpload"
-              :data="{fileType:uploadData}"
             >
              <div v-loading="loadingImage" element-loading-text="载入中..." v-if="imageUrl">
                 <el-image
@@ -308,12 +301,10 @@
             v-if="title=='修改列表管理'"
             class="upload-demo"
             :headers="headers"
-            :action="action"
+            action="#"
+            :http-request="httpRequest"
             :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :on-error="handleAvatarError"
             :before-upload="beforeAvatarUpload"
-            :data="{fileType:uploadData}"
           >
             <el-button style="margin-right: 12px;" type="warning">修改图片</el-button>
           </el-upload>
@@ -326,7 +317,7 @@
 </template>
 
 <script setup name="GalleryImage">
-import { listGalleryImage, getGalleryImage, delGalleryImage, addGalleryImage, updateGalleryImage } from "@/api/gallery/galleryImage";
+import { listGalleryImage, getGalleryImage, delGalleryImage, addGalleryImage, updateGalleryImage, uploadImage } from "@/api/gallery/galleryImage";
 import {getGalleryUserInfo} from "@/api/gallery/galleryUser";
 import { listGalleryType} from "@/api/gallery/galleryType";
 import { getToken } from '@/utils/auth'
@@ -551,35 +542,37 @@ function handleExport() {
 };
 
 /**
- * 上传成功回显
- * @param {*} res 
+ * 覆盖默认的 Xhr 行为，允许自行实现上传文件的请求
+ * avatarFile 上传头像文件
  */
-const handleAvatarSuccess = (res) => {
-  const { width, height, suffix, fileSize, fileName, filePath } = res.data;
-  // 回显表单图片宽度
-  form.value.fileWidth = width;
-  // 回显表单图片高度
-  form.value.fileHeight = height;
-  // 回显表单图片后缀
-  form.value.fileSuffix = suffix;
-  // 回显表单图片大小
-  form.value.fileSize = fileSize;
-  // 回显表单图片名字
-  form.value.fileName = fileName;
-  // 回显表单图片地址
-  form.value.filePath = filePath;
-  // 上传动画结束
-  loadingImage.value = false;
-}
-
-/**
- * 上传失败处理
- * @param {*} err 
- */
-const handleAvatarError = (err) => {
-  // 上传动画结束
-  loadingImage.value = false;
-  proxy.$modal.msgError("上传失败");
+ function httpRequest(imageFile) {
+  //发送请求的参数格式为FormData
+  const formData = new FormData(); 
+  formData.append("file",imageFile.file)
+  formData.append("fileType",uploadData.value)
+  
+  // 调用 uploadAvatar 函数发送请求
+  uploadImage(formData).then((res) => {
+    const { width, height, suffix, fileSize, fileName, filePath } = res.data;
+    // 回显表单图片宽度
+    form.value.fileWidth = width;
+    // 回显表单图片高度
+    form.value.fileHeight = height;
+    // 回显表单图片后缀
+    form.value.fileSuffix = suffix;
+    // 回显表单图片大小
+    form.value.fileSize = fileSize;
+    // 回显表单图片名字
+    form.value.fileName = fileName;
+    // 回显表单图片地址
+    form.value.filePath = filePath;
+    // 上传动画结束
+    loadingImage.value = false;
+  }).catch((err) => {
+    // 上传动画结束
+    loadingAvatar.value = false;
+    proxy.$modal.msgError("上传失败");
+  })
 }
 
 /**

@@ -10,7 +10,7 @@ export default defineConfig(({ mode, command }) => {
     // 部署生产环境和开发环境下的URL。
     // 默认情况下，vite 会假设你的应用是被部署在一个域名的根路径上
     // 例如 https://www.ruoyi.vip/。如果应用被部署在一个子路径上，你就需要用这个选项指定这个子路径。例如，如果你的应用被部署在 https://www.ruoyi.vip/admin/，则设置 baseUrl 为 /admin/。
-    base: VITE_APP_ENV === 'production' ? '/admin/' : '/',
+    base: VITE_APP_ENV === 'production' ? '/admin/' : '/admin/',
     plugins: createVitePlugins(env, command === 'build'),
     resolve: {
       // https://cn.vitejs.dev/config/#resolve-alias
@@ -26,13 +26,14 @@ export default defineConfig(({ mode, command }) => {
     // vite 相关配置
     server: {
       port: 3000,
-      host: true,
+      host: "0.0.0.0",
       open: false,
+      cors:true,
       proxy: {
         // 反向代理解决跨域
         [VITE_APP_BASE_API]: {
           target: VITE_APP_BASE_HOST, //跨域网址
-          // secure: true, // 如果是https接口，需要配置这个参数
+          secure: true, // 如果是https接口，需要配置这个参数
           changeOrigin: true,  //自动修改http header里面的host
           rewrite: (path) =>
             path.replace(new RegExp("^" + VITE_APP_BASE_API), ""), // 替换 /dev-api 为 target 接口地址

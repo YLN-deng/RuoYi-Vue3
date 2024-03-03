@@ -121,16 +121,14 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="galleryUserRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户头像" prop="userAvatar">
-          <!-- <el-image :src="imgHost + form.userAvatar" style="width: 100px; height: 100px;" fit="cover"></el-image> -->
           <el-upload
             v-loading="loadingAvatar"
             element-loading-text="上传中..."
             class="avatar-uploader"
             :headers="headers"
-            :action="action"
+            action="#"
+            :http-request="httpRequest"
             :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :on-error="handleAvatarError"
             :before-upload="beforeAvatarUpload"
           >
             <img
@@ -212,7 +210,7 @@
 </template>
 
 <script setup name="GalleryUser">
-import { listGalleryUser, getGalleryUser, delGalleryUser, addGalleryUser, updateGalleryUser } from "@/api/gallery/galleryUser";
+import { listGalleryUser, getGalleryUser, delGalleryUser, addGalleryUser, updateGalleryUser, uploadAvatar } from "@/api/gallery/galleryUser";
 import { getToken } from '@/utils/auth'
 
 const { proxy } = getCurrentInstance();
@@ -229,7 +227,6 @@ const title = ref("");
 const daterangeCreateDate = ref([]);
 const daterangeUpdateDate = ref([]);
 const imgHost = import.meta.env.VITE_APP_BASE_IMG;
-const action = import.meta.env.VITE_APP_BASE_HOST + "/gallery/galleryUser/uploadAvatar";
 const headers = {
   'Authorization': 'Bearer ' + getToken()
 }
@@ -423,24 +420,25 @@ const beforeAvatarUpload = (rawFile) => {
 };
 
 /**
- * 上传成功回显
- * @param {*} res 
+ * 覆盖默认的 Xhr 行为，允许自行实现上传文件的请求
+ * avatarFile 上传头像文件
  */
-const handleAvatarSuccess = (res) => {
-  // 修改图片地址
-  form.value.userAvatar = res.data;
-  // 上传动画结束
-  loadingAvatar.value = false;
-}
-
-/**
- * 上传失败处理
- * @param {*} err 
- */
-const handleAvatarError = (err) => {
-  // 上传动画结束
-  loadingAvatar.value = false;
-  proxy.$modal.msgError("上传失败");
+function httpRequest(avatarFile) {
+  //发送请求的参数格式为FormData
+  const formData = new FormData(); 
+  formData.append("file",avatarFile.file) 
+  
+  // 调用 uploadAvatar 函数发送请求
+  uploadAvatar(formData).then((res) => {
+    // 修改图片地址
+    form.value.userAvatar = res.data;
+    // 上传动画结束
+    loadingAvatar.value = false;
+  }).catch((err) => {
+    // 上传动画结束
+    loadingAvatar.value = false;
+    proxy.$modal.msgError("上传失败");
+  })
 }
 
 getList();

@@ -42,3 +42,13 @@ export function delGalleryImage(fileId) {
     method: 'delete'
   })
 }
+
+// 上传或修改图库列表信息
+export function uploadImage(formData) {
+  return request({
+    url: '/gallery/galleryImage/uploadImage',
+    method: 'post',
+    data:formData
+  })
+}
+
