@@ -73,7 +73,13 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="任务编号" align="center" prop="taskId" />
       <el-table-column label="用户编号" align="center" prop="userId" />
-      <el-table-column label="点赞次数" align="center" prop="taskLikeCount" />
+      <el-table-column label="点赞次数" align="center" prop="taskLikeCount">
+        <template #default="{ row }">
+          <el-tag :type="row.taskLikeCount === 5 ? 'success' : '' ">
+            {{ row.taskLikeCount === 5 ? '已完成' : row.taskLikeCount + "/5" }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="是否签到" align="center" prop="taskSignIn">
         <template #default="{ row }">
           <el-tag :type="row.taskSignIn === 1 ? 'success' : 'danger'">
