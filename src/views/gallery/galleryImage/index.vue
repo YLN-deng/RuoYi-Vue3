@@ -526,11 +526,11 @@ function handleExport() {
   }else if(form.value.fileType == null || form.value.userId == "") {
     proxy.$modal.msgError("请输入图片分类！");
     return false;
-  }else if (rawFile.type !== "image/jpeg") {
-    proxy.$modal.msgError("图片必须是 JPG/PNG/GIF 格式！");
+  }else if (rawFile.type !== "image/jpeg" || rawFile.type !== "image/png") {
+    proxy.$modal.msgError("图片必须是 JPG/PNG 格式！");
     return false;
-  } else if (rawFile.size / 1024 / 1024 > 10) {
-    proxy.$modal.msgError("图片大小不能超过10MB！");
+  } else if (rawFile.size / 1024 / 1024 > 50) {
+    proxy.$modal.msgError("图片大小不能超过50MB！");
     return false;
   }
   // 显示上传图片
