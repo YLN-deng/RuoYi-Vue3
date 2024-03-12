@@ -526,7 +526,7 @@ function handleExport() {
   }else if(form.value.fileType == null || form.value.userId == "") {
     proxy.$modal.msgError("请输入图片分类！");
     return false;
-  }else if (rawFile.type !== "image/jpeg" || rawFile.type !== "image/png") {
+  }else if (rawFile.type !== "image/jpeg" && rawFile.type !== "image/png") {
     proxy.$modal.msgError("图片必须是 JPG/PNG 格式！");
     return false;
   } else if (rawFile.size / 1024 / 1024 > 50) {
