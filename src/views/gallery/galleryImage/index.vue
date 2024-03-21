@@ -187,6 +187,9 @@
             <el-form-item label="图片地址" prop="filePath">
               <el-input v-model="form.filePath" placeholder="请输入图片地址" />
             </el-form-item>
+            <el-form-item label="压缩地址" prop="fileCompressPath">
+              <el-input v-model="form.fileCompressPath" placeholder="请输入图片压缩地址" />
+            </el-form-item>
             <el-form-item label="图片来源" prop="fileOrigin">
               <el-input v-model="form.fileOrigin" type="textarea" placeholder="请输入图片来源" />
             </el-form-item>
@@ -268,6 +271,9 @@
             </el-form-item>
             <el-form-item label="图片地址" prop="filePath">
               <el-input v-model="form.filePath" placeholder="请输入图片地址" />
+            </el-form-item>
+            <el-form-item label="压缩地址" prop="fileCompressPath">
+              <el-input v-model="form.fileCompressPath" placeholder="请输入图片压缩地址" />
             </el-form-item>
             <el-form-item label="图片来源" prop="fileOrigin">
               <el-input v-model="form.fileOrigin" type="textarea" placeholder="请输入图片来源" />
@@ -415,6 +421,7 @@ function reset() {
     fileType: null,
     fileSuffix: null,
     filePath: null,
+    fileCompressPath: null,
     fileOrigin: null,
     fileWidth: null,
     fileHeight: null,
@@ -526,6 +533,9 @@ function handleExport() {
   }else if(form.value.fileType == null || form.value.userId == "") {
     proxy.$modal.msgError("请输入图片分类！");
     return false;
+  }else if(form.value.fileOrigin == null || form.value.userId == "") {
+    proxy.$modal.msgError("请输入图片来源！");
+    return false;
   }else if (rawFile.type !== "image/jpeg" && rawFile.type !== "image/png") {
     proxy.$modal.msgError("图片必须是 JPG/PNG 格式！");
     return false;
@@ -550,10 +560,11 @@ function handleExport() {
   const formData = new FormData(); 
   formData.append("file",imageFile.file)
   formData.append("fileType",uploadData.value)
+  formData.append("fileOrigin",form.value.fileOrigin)
   
   // 调用 uploadAvatar 函数发送请求
   uploadImage(formData).then((res) => {
-    const { width, height, suffix, fileSize, fileName, filePath } = res.data;
+    const { width, height, suffix, fileSize, fileName, filePath, fileCompressPath } = res.data;
     // 回显表单图片宽度
     form.value.fileWidth = width;
     // 回显表单图片高度
@@ -566,6 +577,8 @@ function handleExport() {
     form.value.fileName = fileName;
     // 回显表单图片地址
     form.value.filePath = filePath;
+    // 回显图片压缩地址
+    form.value.fileCompressPath = fileCompressPath;
     // 上传动画结束
     loadingImage.value = false;
   }).catch((err) => {
